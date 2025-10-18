@@ -29,8 +29,15 @@ def utility(board, me='O'):
     w = winner(board)
     return 1 if w == me else -1 if w else 0
 
+# Global counters for node exploration
+minimax_nodes = 0
+alphabeta_nodes = 0
+
 def minimax(board, player, me='O'):
     """Minimax algorithm: returns (value, move)"""
+    global minimax_nodes
+    minimax_nodes += 1
+    
     if terminal(board):
         return utility(board, me), None
     
@@ -49,6 +56,9 @@ def minimax(board, player, me='O'):
 
 def alphabeta(board, player, alpha=-2, beta=2, me='O'):
     """Alpha-beta pruning optimization"""
+    global alphabeta_nodes
+    alphabeta_nodes += 1
+    
     if terminal(board):
         return utility(board, me), None
     
@@ -60,7 +70,8 @@ def alphabeta(board, player, alpha=-2, beta=2, me='O'):
             if val > best_val:
                 best_val, best_move = val, m
             alpha = max(alpha, val)
-            if alpha >= beta: break  # Prune
+            if alpha >= beta: 
+                break  # Prune
         return best_val, best_move
     else:  # MIN player
         best_val, best_move = 2, None
@@ -70,11 +81,14 @@ def alphabeta(board, player, alpha=-2, beta=2, me='O'):
             if val < best_val:
                 best_val, best_move = val, m
             beta = min(beta, val)
-            if alpha >= beta: break  # Prune
+            if alpha >= beta: 
+                break  # Prune
         return best_val, best_move
 
 def play_game():
     """Main game loop"""
+    global alphabeta_nodes  # make sure we can reset inside loop
+    
     board = [' '] * 9
     human, ai = 'X', 'O'
     
@@ -95,9 +109,10 @@ def play_game():
                 continue
         else:
             print("AI thinking...")
+            alphabeta_nodes = 0  # Reset counter
             _, m = alphabeta(board, ai, me=ai)
             board[m] = ai
-            print(f"AI chose {m+1}")
+            print(f"AI chose {m+1} (explored {alphabeta_nodes} nodes)")
         
         print_board(board)
         current = ai if current == human else human
@@ -105,5 +120,27 @@ def play_game():
     w = winner(board)
     print("You win!" if w == human else "AI wins!" if w == ai else "Draw!")
 
+def compare_algorithms():
+    """Compare minimax vs alphabeta efficiency"""
+    global minimax_nodes, alphabeta_nodes
+    
+    board = [' '] * 9  # Empty board test
+    
+    # Test Minimax
+    minimax_nodes = 0
+    _, move1 = minimax(board, 'O', me='O')
+    print(f"Minimax: {minimax_nodes} nodes explored, chose position {move1+1}")
+    
+    # Test Alpha-Beta
+    alphabeta_nodes = 0
+    _, move2 = alphabeta(board, 'O', me='O')
+    print(f"Alpha-Beta: {alphabeta_nodes} nodes explored, chose position {move2+1}")
+    
+    efficiency = ((minimax_nodes - alphabeta_nodes) / minimax_nodes) * 100
+    print(f"Alpha-Beta is {efficiency:.1f}% more efficient!")
+
 if __name__ == "__main__":
+    # Compare algorithms first
+    compare_algorithms()
+    # Then play the game
     play_game()
