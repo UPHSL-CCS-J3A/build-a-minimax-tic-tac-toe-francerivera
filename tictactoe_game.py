@@ -1,6 +1,8 @@
+# Winning combinations: rows, columns, diagonals
 LINES = [(0,1,2), (3,4,5), (6,7,8), (0,3,6), (1,4,7), (2,5,8), (0,4,8), (2,4,6)]
 
 def print_board(board):
+    """Display 3x3 grid"""
     print("\n")
     for i in range(0, 9, 3):
         print(f" {board[i]} | {board[i+1]} | {board[i+2]} ")
@@ -8,26 +10,31 @@ def print_board(board):
     print("\n")
 
 def winner(board):
+    """Return winner ('X'/'O') or None"""
     for a, b, c in LINES:
         if board[a] != ' ' and board[a] == board[b] == board[c]:
             return board[a]
     return None
 
 def moves(board):
+    """Return list of empty positions"""
     return [i for i, v in enumerate(board) if v == ' ']
 
 def terminal(board):
+    """Check if game is over"""
     return winner(board) is not None or not moves(board)
 
 def utility(board, me='O'):
+    """Score: +1 win, -1 loss, 0 draw"""
     w = winner(board)
     return 1 if w == me else -1 if w else 0
 
 def minimax(board, player, me='O'):
+    """Minimax algorithm: returns (value, move)"""
     if terminal(board):
         return utility(board, me), None
     
-    best_val = -2 if player == me else 2
+    best_val = -2 if player == me else 2  # MAX vs MIN
     best_move = None
     
     for m in moves(board):
@@ -41,10 +48,11 @@ def minimax(board, player, me='O'):
     return best_val, best_move
 
 def alphabeta(board, player, alpha=-2, beta=2, me='O'):
+    """Alpha-beta pruning optimization"""
     if terminal(board):
         return utility(board, me), None
     
-    if player == me:
+    if player == me:  # MAX player
         best_val, best_move = -2, None
         for m in moves(board):
             b2 = board[:]; b2[m] = player
@@ -52,9 +60,9 @@ def alphabeta(board, player, alpha=-2, beta=2, me='O'):
             if val > best_val:
                 best_val, best_move = val, m
             alpha = max(alpha, val)
-            if alpha >= beta: break
+            if alpha >= beta: break  # Prune
         return best_val, best_move
-    else:
+    else:  # MIN player
         best_val, best_move = 2, None
         for m in moves(board):
             b2 = board[:]; b2[m] = player
@@ -62,10 +70,11 @@ def alphabeta(board, player, alpha=-2, beta=2, me='O'):
             if val < best_val:
                 best_val, best_move = val, m
             beta = min(beta, val)
-            if alpha >= beta: break
+            if alpha >= beta: break  # Prune
         return best_val, best_move
 
 def play_game():
+    """Main game loop"""
     board = [' '] * 9
     human, ai = 'X', 'O'
     
